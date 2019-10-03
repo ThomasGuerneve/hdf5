@@ -12,10 +12,10 @@ environment:
     #- TOOLCHAIN: "default"
     #  PROJECT_DIR: examples\hdf5
 
-    - TOOLCHAIN: "ninja-vs-17-2017-win64-cxx17"
+    - TOOLCHAIN: "ninja-vs-15-2017-win64-cxx17"
       PROJECT_DIR: examples\hdf5
 
-    - TOOLCHAIN: "ninja-vs-17-2017-win64"
+    - TOOLCHAIN: "ninja-vs-15-2017-win64"
       PROJECT_DIR: examples\hdf5
 
     - TOOLCHAIN: "ninja-vs-14-2015-win64"
