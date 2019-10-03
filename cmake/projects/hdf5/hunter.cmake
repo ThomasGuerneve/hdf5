@@ -24,7 +24,7 @@ hunter_add_version(
     PACKAGE_NAME
     hdf5
     VERSION
-    "1.10.5-p1"
+    "1.10.5-hp1"
     URL
     "https://github.com/cpp-pm/hdf5/archive/1.10.5-hp1.tar.gz"
     SHA1
