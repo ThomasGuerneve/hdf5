@@ -1,0 +1,23 @@
+Execute command: [
+  `which`
+  `cmake`
+]
+[/home/thomas.guerneve/Code/polly]> "which" "cmake"
+/usr/local/bin/cmake
+Execute command: [
+  `cmake`
+  `--version`
+]
+[/home/thomas.guerneve/Code/polly]> "cmake" "--version"
+cmake version 3.11.0
+
+CMake suite maintained and supported by Kitware (kitware.com/cmake).
+Execute command: [
+  `cmake`
+  `-H.`
+  `-B/home/thomas.guerneve/Code/polly/_builds/default`
+  `-DCMAKE_TOOLCHAIN_FILE=/home/thomas.guerneve/Code/polly/default.cmake`
+]
+[/home/thomas.guerneve/Code/polly]> "cmake" "-H." "-B/home/thomas.guerneve/Code/polly/_builds/default" "-DCMAKE_TOOLCHAIN_FILE=/home/thomas.guerneve/Code/polly/default.cmake"
+CMake Error: The source directory "/home/thomas.guerneve/Code/polly" does not appear to contain CMakeLists.txt.
+Specify --help for usage, or press the help button on the CMake GUI.
