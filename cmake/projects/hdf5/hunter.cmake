@@ -20,6 +20,18 @@ hunter_add_version(
     "aa7524bae51f286a4f2b2c22434c1cbab71ff530"
 )
 
+hunter_add_version(
+    PACKAGE_NAME
+    hdf5
+    VERSION
+    "1.10.5-p1"
+    URL
+    "https://github.com/cpp-pm/hdf5/archive/1.10.5-p1.tar.gz"
+    SHA1
+    "62d0d0639b1dd1f5a3333e87e6ba26bf4e2989a4"
+)
+
+
 hunter_cmake_args(
     hdf5
     CMAKE_ARGS
