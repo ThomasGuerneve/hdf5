@@ -9,8 +9,8 @@ environment:
   matrix:
     # FIXME:
     # * https://ci.appveyor.com/project/ingenue/hunter/build/1.0.1053/job/l4ud1nf8pbo11tkh
-     - TOOLCHAIN: "default"
-       PROJECT_DIR: examples\hdf5
+    - TOOLCHAIN: "default"
+      PROJECT_DIR: examples\hdf5
 
     - TOOLCHAIN: "ninja-vs-17-2017-win64-cxx17"
       PROJECT_DIR: examples\hdf5
@@ -85,8 +85,8 @@ environment:
 
     # FIXME:
     # * https://ci.appveyor.com/project/ingenue/hunter/build/1.0.1053/job/mtnnis065ibe658y
-     - TOOLCHAIN: "msys"
-       PROJECT_DIR: examples\hdf5
+    - TOOLCHAIN: "msys"
+      PROJECT_DIR: examples\hdf5
 
 install:
   # Python 3
