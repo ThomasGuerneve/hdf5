@@ -1,29 +1,9 @@
 #
-# Copyright by The HDF Group.
-# All rights reserved.
-#
-# This file is part of HDF5.  The full HDF5 copyright notice, including
-# terms governing use, modification, and redistribution, is contained in
-# the COPYING file, which can be found at the root of the source code
-# distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.
-# If you do not have access to either file, you may request a copy from
-# help@hdfgroup.org.
-#
-#
 # This file provides functions for Fortran support.
 #
 #-------------------------------------------------------------------------------
 ENABLE_LANGUAGE (Fortran)
-set (HDF_PREFIX "H5")
-
-#-------------------------------------------------------------------------------
-#  Fix Fortran flags if we are compiling staticly on Windows using
-#  Windows_MT.cmake from config/cmake/UserMacros
-#-------------------------------------------------------------------------------
-if (BUILD_STATIC_CRT_LIBS)
-  TARGET_STATIC_CRT_FLAGS ()
-endif ()
-
+  
 #-----------------------------------------------------------------------------
 # Detect name mangling convention used between Fortran and C
 #-----------------------------------------------------------------------------
@@ -32,6 +12,7 @@ FortranCInterface_HEADER (
     ${CMAKE_BINARY_DIR}/FCMangle.h
     MACRO_NAMESPACE "H5_FC_"
     SYMBOL_NAMESPACE "H5_FC_"
+    SYMBOLS mysub mymod:my_sub
 )
 
 file (STRINGS ${CMAKE_BINARY_DIR}/FCMangle.h CONTENTS REGEX "H5_FC_GLOBAL\\(.*,.*\\) +(.*)")
@@ -46,21 +27,22 @@ set (H5_FC_FUNC_ "H5_FC_FUNC_(name,NAME) ${CMAKE_MATCH_1}")
 # The provided CMake Fortran macros don't provide a general check function
 # so this one is used for a sizeof test.
 #-----------------------------------------------------------------------------
-macro (CHECK_FORTRAN_FEATURE FUNCTION CODE VARIABLE)
+MACRO (CHECK_FORTRAN_FEATURE FUNCTION CODE VARIABLE)
+  if (NOT DEFINED ${VARIABLE})
     message (STATUS "Testing Fortran ${FUNCTION}")
-    if (HDF5_REQUIRED_LIBRARIES)
+    if (CMAKE_REQUIRED_LIBRARIES)
       set (CHECK_FUNCTION_EXISTS_ADD_LIBRARIES
-          "-DLINK_LIBRARIES:STRING=${HDF5_REQUIRED_LIBRARIES}")
-    else ()
+          "-DLINK_LIBRARIES:STRING=${CMAKE_REQUIRED_LIBRARIES}")
+    else (CMAKE_REQUIRED_LIBRARIES)
       set (CHECK_FUNCTION_EXISTS_ADD_LIBRARIES)
-    endif ()
+    endif (CMAKE_REQUIRED_LIBRARIES)
     file (WRITE
-        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f90
+        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
         "${CODE}"
     )
-    TRY_COMPILE (RESULT_VAR
+    TRY_COMPILE (${VARIABLE}
         ${CMAKE_BINARY_DIR}
-        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f90
+        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompiler.f
         CMAKE_FLAGS "${CHECK_FUNCTION_EXISTS_ADD_LIBRARIES}"
         OUTPUT_VARIABLE OUTPUT
     )
@@ -69,21 +51,22 @@ macro (CHECK_FORTRAN_FEATURE FUNCTION CODE VARIABLE)
 #    message ( "Test result ${OUTPUT}")
 #    message ( "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ")
 
-    if (${RESULT_VAR})
+    if (${VARIABLE})
       set (${VARIABLE} 1 CACHE INTERNAL "Have Fortran function ${FUNCTION}")
       message (STATUS "Testing Fortran ${FUNCTION} - OK")
       file (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
           "Determining if the Fortran ${FUNCTION} exists passed with the following output:\n"
           "${OUTPUT}\n\n"
       )
-    else ()
+    else (${VARIABLE})
       message (STATUS "Testing Fortran ${FUNCTION} - Fail")
-      set (${VARIABLE} 0 CACHE INTERNAL "Have Fortran function ${FUNCTION}")
+      set (${VARIABLE} "" CACHE INTERNAL "Have Fortran function ${FUNCTION}")
       file (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
           "Determining if the Fortran ${FUNCTION} exists failed with the following output:\n"
           "${OUTPUT}\n\n")
-    endif ()
-endmacro ()
+    endif (${VARIABLE})
+  endif (NOT DEFINED ${VARIABLE})
+ENDMACRO (CHECK_FORTRAN_FEATURE)
 
 #-----------------------------------------------------------------------------
 # Configure Checks which require Fortran compilation must go in here
@@ -94,18 +77,16 @@ endmacro ()
 #-----------------------------------------------------------------------------
 
 # Check for Non-standard extension intrinsic function SIZEOF
-set (${HDF_PREFIX}_FORTRAN_HAVE_SIZEOF FALSE)
 CHECK_FORTRAN_FEATURE(sizeof
   "
        PROGRAM main
        i = sizeof(x)
        END PROGRAM
   "
-  ${HDF_PREFIX}_FORTRAN_HAVE_SIZEOF
+  FORTRAN_HAVE_SIZEOF
 )
 
 # Check for F2008 standard intrinsic function C_SIZEOF
-set (${HDF_PREFIX}_FORTRAN_HAVE_C_SIZEOF FALSE)
 CHECK_FORTRAN_FEATURE(c_sizeof
   "
        PROGRAM main
@@ -115,7 +96,7 @@ CHECK_FORTRAN_FEATURE(c_sizeof
          result = c_sizeof(a)
        END PROGRAM
   "
-  ${HDF_PREFIX}_FORTRAN_HAVE_C_SIZEOF
+  FORTRAN_HAVE_C_SIZEOF
 )
 
 # Check for F2008 standard intrinsic function STORAGE_SIZE
@@ -127,21 +108,10 @@ CHECK_FORTRAN_FEATURE(storage_size
          result = storage_size(a)
        END PROGRAM
   "
-  ${HDF_PREFIX}_FORTRAN_HAVE_STORAGE_SIZE
+  FORTRAN_HAVE_STORAGE_SIZE
 )
 
-# Check for F2008 standard intrinsic module "ISO_FORTRAN_ENV"
-set (${HDF_PREFIX}_HAVE_ISO_FORTRAN_ENV FALSE)
-CHECK_FORTRAN_FEATURE(ISO_FORTRAN_ENV
-  "
-       PROGRAM main
-         USE, INTRINSIC :: ISO_FORTRAN_ENV
-       END PROGRAM
-  "
-  ${HDF_PREFIX}_HAVE_ISO_FORTRAN_ENV
-)
 
-set (${HDF_PREFIX}_FORTRAN_DEFAULT_REAL_NOT_DOUBLE FALSE)
 CHECK_FORTRAN_FEATURE(RealIsNotDouble
   "
        MODULE type_mod
@@ -165,13 +135,12 @@ CHECK_FORTRAN_FEATURE(RealIsNotDouble
          CALL h5t(d)
        END PROGRAM main
   "
-  ${HDF_PREFIX}_FORTRAN_DEFAULT_REAL_NOT_DOUBLE
+  FORTRAN_DEFAULT_REAL_NOT_DOUBLE
 )
 
 #-----------------------------------------------------------------------------
 # Checks if the ISO_C_BINDING module meets all the requirements
 #-----------------------------------------------------------------------------
-set (${HDF_PREFIX}_FORTRAN_HAVE_ISO_C_BINDING FALSE)
 CHECK_FORTRAN_FEATURE(iso_c_binding
   "
        PROGRAM main
@@ -179,12 +148,12 @@ CHECK_FORTRAN_FEATURE(iso_c_binding
             IMPLICIT NONE
             TYPE(C_PTR) :: ptr
             TYPE(C_FUNPTR) :: funptr
-            INTEGER(C_INT64_T) :: c_int64_type
+            INTEGER(C_INT64_T) :: c_int64_type 
             CHARACTER(LEN=80, KIND=c_char), TARGET :: ichr
             ptr = C_LOC(ichr(1:1))
        END PROGRAM
   "
-  ${HDF_PREFIX}_FORTRAN_HAVE_ISO_C_BINDING
+  FORTRAN_HAVE_ISO_C_BINDING
 )
 
 #-----------------------------------------------------------------------------
@@ -194,5 +163,5 @@ if (CMAKE_Fortran_COMPILER MATCHES ifort)
     if (WIN32)
         set (CMAKE_Fortran_FLAGS_DEBUG "/debug:full /dbglibs " CACHE "flags" STRING FORCE)
         set (CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG" CACHE "flags" STRING FORCE)
-    endif ()
-endif ()
+    endif (WIN32)
+endif (CMAKE_Fortran_COMPILER MATCHES ifort)
